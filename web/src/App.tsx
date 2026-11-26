@@ -4,7 +4,6 @@ import { H3HexagonLayer } from "@deck.gl/geo-layers";
 import { PathLayer, ColumnLayer, ScatterplotLayer, TextLayer, GeoJsonLayer } from "@deck.gl/layers";
 import { FlyToInterpolator, type MapViewState, type PickingInfo } from "@deck.gl/core";
 import { Map } from "react-map-gl/maplibre";
-import { CollisionFilterExtension } from "@deck.gl/extensions";
 import { Icon } from "./Icon";
 import { loadWorld, fmt, money, type World, type Hex } from "./data";
 import { LENSES, lensById, lerp, makeScale, TERRAIN, cuisineColor, TOP_CUISINES, type RGB } from "./lenses";
@@ -145,16 +144,14 @@ export default function App() {
       }));
       if (view.zoom > 12.2) {
         L.push(new TextLayer({
-          id: "wonder-labels", data: world.wonders, getPosition: (d: any) => [d.lon, d.lat, 260], getText: (d: any) => d.name,
+          id: "wonder-labels", data: world.wonders.filter((w) => Math.hypot((w.lon - view.longitude) * 0.76, w.lat - view.latitude) < 0.9 / Math.pow(2, view.zoom - 10)), getPosition: (d: any) => [d.lon, d.lat, 260], getText: (d: any) => d.name,
           getSize: 12, getColor: [255, 236, 190, 255], getPixelOffset: [0, -16], fontFamily: "Inter, sans-serif", fontWeight: 600,
           outlineWidth: 3, outlineColor: [12, 12, 18, 255], fontSettings: { sdf: true }, characterSet: "auto", parameters: { depthTest: false } as any,
-          extensions: [new CollisionFilterExtension()], collisionGroup: "labels", getCollisionPriority: (d: any) => (d.kind === "Skyscraper" || d.kind === "Grand Station" ? 2 : 1),
-          collisionTestProps: { sizeScale: 2.5 },
         }));
       }
     }
     return L;
-  }, [world, colorOf, lensId, effHour, scale, selNta, show3d, showSubway, hour, weekend, showWonders, view.zoom > 12.2, bikes, showBikes]);
+  }, [world, colorOf, lensId, effHour, scale, selNta, show3d, showSubway, hour, weekend, showWonders, view.zoom > 12.2, Math.round(view.longitude * 200), Math.round(view.latitude * 200), Math.round(view.zoom * 2), bikes, showBikes]);
 
   const onHover = (info: PickingInfo) => {
     if (!info.object || !world) return setHover(null);
@@ -302,7 +299,7 @@ export default function App() {
       {panel === "advisors" && <AdvisorCouncil world={world} ntaIdx={selNta} onPick={(i) => { selectNta(i); setSelHex(null); }} onLens={setLensId} onClose={() => setPanel(null)} />}
       {panel === "explorer" && <Explorer world={world} selected={selNta} onPick={(i) => { selectNta(i); setSelHex(null); }} onClose={() => setPanel(null)} />}
       {panel === "about" && <About world={world} onClose={() => setPanel(null)} />}
-      {panel === "wonders" && <WonderList world={world} onPick={(w) => { flyTo(w.lon, w.lat, 15); const hx = world.hexIndex.get(h3cell(w.lat, w.lon)); if (hx) { setSelHex(hx); selectNta(hx.nta, false); } }} onClose={() => setPanel(null)} />}
+      {panel === "wonders" && <WonderList world={world} onPick={(w) => { setPanel(null); flyTo(w.lon, w.lat, 14.2); const hx = world.hexIndex.get(h3cell(w.lat, w.lon)); if (hx) { setSelHex(hx); selectNta(hx.nta, false); } }} onClose={() => setPanel(null)} />}
 
       {hover && (
         <div className="tooltip" style={{ left: hover.x + 14, top: hover.y + 14 }}>
