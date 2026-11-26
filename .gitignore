@@ -1,0 +1,7 @@
+raw/
+.venv/
+node_modules/
+web/dist/
+.vercel
+*.log
+__pycache__/
